@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- ============================================================
+       InternFlow - Internship Management System
+       Author: You | Theme: Dark SaaS Dashboard
+       Description: Full-featured internship management platform
+                    using pure HTML, CSS, and Vanilla JavaScript.
+                    All data stored in localStorage (no backend).
+  ============================================================ -->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>InternFlow – Internship Management</title>
+
+  <!-- Link to our external stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Google Fonts: Inter for a modern SaaS look -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+
+  <!-- Boxicons for sidebar/UI icons -->
+  <link
+    href="https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css"
+    rel="stylesheet"
+  />
+</head>
+<body class="dark-mode">
+
+  <!-- ============================================================
+       LOADING SCREEN
+       Shows a branded spinner while the page initialises.
+       Hidden via JS after 1.5 seconds.
+  ============================================================ -->
+  <div id="loadingScreen" class="loading-screen">
+    <div class="loading-logo">
+      <span class="logo-icon"><i class="bx bx-code-alt"></i></span>
+      <span class="logo-text">InternFlow</span>
+    </div>
+    <div class="loading-spinner"></div>
+    <p class="loading-hint">Setting up your workspace…</p>
+  </div>
+
+  <!-- ============================================================
+       TOAST NOTIFICATION CONTAINER
+       Toast messages are injected here by JavaScript.
+  ============================================================ -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- ============================================================
+       DELETE CONFIRMATION MODAL
+       Shown when the user clicks the delete button on a task.
+  ============================================================ -->
+  <div id="deleteModal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <div class="modal-icon"><i class="bx bx-trash"></i></div>
+      <h3>Delete Task?</h3>
+      <p>This action cannot be undone. The task will be permanently removed.</p>
+      <div class="modal-actions">
+        <button id="cancelDelete" class="btn btn-ghost">Cancel</button>
+        <button id="confirmDelete" class="btn btn-danger">Delete</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       AUTH SECTION  (#authSection)
+       Shown when the user is NOT logged in.
+       Contains Login and Register forms (toggled by JS).
+  ============================================================ -->
+  <section id="authSection" class="auth-section">
+    <div class="auth-bg-glow"></div>
+
+    <div class="auth-card">
+      <!-- Branding -->
+      <div class="auth-brand">
+        <span class="logo-icon"><i class="bx bx-code-alt"></i></span>
+        <span class="logo-text">InternFlow</span>
+      </div>
+      <p class="auth-tagline">Your internship. Managed beautifully.</p>
+
+      <!-- ── LOGIN FORM ── -->
+      <form id="loginForm" class="auth-form active-form">
+        <h2 class="form-title">Welcome back 👋</h2>
+        <p class="form-subtitle">Sign in to your workspace</p>
+
+        <div class="field-group">
+          <label for="loginEmail">Email</label>
+          <div class="input-wrap">
+            <i class="bx bx-envelope"></i>
+            <input
+              type="email"
+              id="loginEmail"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="loginPassword">Password</label>
+          <div class="input-wrap">
+            <i class="bx bx-lock-alt"></i>
+            <input
+              type="password"
+              id="loginPassword"
+              placeholder="••••••••"
+              autocomplete="current-password"
+              required
+            />
+            <!-- Toggle password visibility -->
+            <i class="bx bx-hide toggle-pw" id="toggleLoginPw"></i>
+          </div>
+        </div>
+
+        <!-- Inline error message -->
+        <p class="auth-error hidden" id="loginError"></p>
+
+        <button type="submit" class="btn btn-primary btn-full">
+          Sign In <i class="bx bx-right-arrow-alt"></i>
+        </button>
+
+        <p class="auth-switch">
+          No account?
+          <a href="#" id="goToRegister">Create one →</a>
+        </p>
+      </form>
+
+      <!-- ── REGISTER FORM ── -->
+      <form id="registerForm" class="auth-form">
+        <h2 class="form-title">Join InternFlow 🚀</h2>
+        <p class="form-subtitle">Create your free account</p>
+
+        <div class="field-group">
+          <label for="regName">Full Name</label>
+          <div class="input-wrap">
+            <i class="bx bx-user"></i>
+            <input
+              type="text"
+              id="regName"
+              placeholder="Jane Doe"
+              autocomplete="name"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="regEmail">Email</label>
+          <div class="input-wrap">
+            <i class="bx bx-envelope"></i>
+            <input
+              type="email"
+              id="regEmail"
+              placeholder="you@example.com"
+              autocomplete="email"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="regPassword">Password</label>
+          <div class="input-wrap">
+            <i class="bx bx-lock-alt"></i>
+            <input
+              type="password"
+              id="regPassword"
+              placeholder="Min 6 characters"
+              autocomplete="new-password"
+              required
+            />
+            <i class="bx bx-hide toggle-pw" id="toggleRegPw"></i>
+          </div>
+        </div>
+
+        <p class="auth-error hidden" id="registerError"></p>
+
+        <button type="submit" class="btn btn-primary btn-full">
+          Create Account <i class="bx bx-right-arrow-alt"></i>
+        </button>
+
+        <p class="auth-switch">
+          Already have an account?
+          <a href="#" id="goToLogin">Sign in →</a>
+        </p>
+      </form>
+    </div>
+
+    <!-- Decorative floating badges -->
+    <div class="floating-badge badge-1">✅ Task Submitted</div>
+    <div class="floating-badge badge-2">📊 Analytics Ready</div>
+    <div class="floating-badge badge-3">🚀 Internship Tracked</div>
+  </section>
+
+  <!-- ============================================================
+       MAIN APP  (#appSection)
+       Only visible when a user is logged in.
+       Contains sidebar + topbar + all page panels.
+  ============================================================ -->
+  <div id="appSection" class="app-layout hidden">
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <span class="logo-icon"><i class="bx bx-code-alt"></i></span>
+        <span class="logo-text sidebar-logo-text">InternFlow</span>
+        <!-- Close button (mobile) -->
+        <button class="sidebar-close" id="sidebarClose" aria-label="Close menu">
+          <i class="bx bx-x"></i>
+        </button>
+      </div>
+
+      <!-- Navigation links — each triggers page switch via data-page -->
+      <nav class="sidebar-nav">
+        <ul>
+          <li>
+            <a href="#" class="nav-link active" data-page="dashboard">
+              <i class="bx bx-home-alt"></i>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-page="submit">
+              <i class="bx bx-upload"></i>
+              <span>Submit Task</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-page="tasks">
+              <i class="bx bx-list-ul"></i>
+              <span>My Tasks</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-page="calendar">
+              <i class="bx bx-calendar"></i>
+              <span>Calendar</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-page="profile">
+              <i class="bx bx-user-circle"></i>
+              <span>Profile</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-page="notifications">
+              <i class="bx bx-bell"></i>
+              <span>Notifications</span>
+              <span class="nav-badge" id="notifBadge">3</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-link" data-page="settings">
+              <i class="bx bx-cog"></i>
+              <span>Settings</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Logout at bottom of sidebar -->
+      <div class="sidebar-footer">
+        <button id="logoutBtn" class="logout-btn">
+          <i class="bx bx-log-out"></i>
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Sidebar overlay (mobile backdrop) -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- ── MAIN CONTENT AREA ── -->
+    <div class="main-content">
+
+      <!-- ── TOP NAVBAR ── -->
+      <header class="topbar">
+        <!-- Hamburger (mobile) -->
+        <button class="hamburger" id="hamburger" aria-label="Open menu">
+          <i class="bx bx-menu"></i>
+        </button>
+
+        <!-- Page title (updated dynamically) -->
+        <h1 class="page-title" id="pageTitle">Dashboard</h1>
+
+        <!-- Right controls -->
+        <div class="topbar-right">
+          <!-- Search -->
+          <div class="search-wrap" id="topbarSearch">
+            <i class="bx bx-search"></i>
+            <input
+              type="text"
+              id="globalSearch"
+              placeholder="Search tasks…"
+              aria-label="Search tasks"
+            />
+          </div>
+
+          <!-- Theme toggle -->
+          <button
+            class="icon-btn"
+            id="themeToggle"
+            title="Toggle theme"
+            aria-label="Toggle dark/light mode"
+          >
+            <i class="bx bx-moon" id="themeIcon"></i>
+          </button>
+
+          <!-- Notification bell -->
+          <button
+            class="icon-btn notif-btn"
+            data-page="notifications"
+            aria-label="Notifications"
+          >
+            <i class="bx bx-bell"></i>
+            <span class="notif-dot" id="notifDot"></span>
+          </button>
+
+          <!-- User avatar -->
+          <div class="user-avatar" id="userAvatar" title="My Profile">
+            <span id="avatarInitials">?</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- ── PAGES (only one visible at a time) ── -->
+      <main class="content-area">
+
+        <!-- ════════════════════════════════════
+             PAGE: DASHBOARD
+        ════════════════════════════════════ -->
+        <div class="page active-page" id="page-dashboard">
+          <!-- Welcome banner -->
+          <div class="welcome-banner">
+            <div>
+              <h2 id="welcomeMsg">Welcome back! 👋</h2>
+              <p class="text-muted">Here's what's happening with your internship today.</p>
+            </div>
+            <div class="welcome-date" id="welcomeDate"></div>
+          </div>
+
+          <!-- Stats row -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon"><i class="bx bx-collection"></i></div>
+              <div class="stat-info">
+                <span class="stat-label">Total Submissions</span>
+                <span class="stat-value" id="statTotal">0</span>
+              </div>
+              <div class="stat-trend up"><i class="bx bx-trending-up"></i></div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon pending"><i class="bx bx-time-five"></i></div>
+              <div class="stat-info">
+                <span class="stat-label">Pending Tasks</span>
+                <span class="stat-value" id="statPending">0</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon completed"><i class="bx bx-check-circle"></i></div>
+              <div class="stat-info">
+                <span class="stat-label">Completed Tasks</span>
+                <span class="stat-value" id="statCompleted">0</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon streak"><i class="bx bx-calendar-check"></i></div>
+              <div class="stat-info">
+                <span class="stat-label">This Week</span>
+                <span class="stat-value" id="statWeek">0</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chart + Deadlines row -->
+          <div class="dashboard-grid">
+            <!-- Activity chart -->
+            <div class="card chart-card">
+              <div class="card-header">
+                <h3>Submission Activity</h3>
+                <span class="badge badge-accent">Last 7 Days</span>
+              </div>
+              <div class="chart-area">
+                <canvas id="activityChart" height="180"></canvas>
+              </div>
+            </div>
+
+            <!-- Upcoming deadlines -->
+            <div class="card deadlines-card">
+              <div class="card-header">
+                <h3>Upcoming Deadlines</h3>
+                <span class="badge badge-warn">Due Soon</span>
+              </div>
+              <ul class="deadline-list" id="deadlineList">
+                <li class="empty-state-small">No upcoming deadlines</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Recent submissions -->
+          <div class="card recent-card">
+            <div class="card-header">
+              <h3>Recent Submissions</h3>
+              <a href="#" class="link-accent" data-page="tasks">View All</a>
+            </div>
+            <div id="recentList" class="recent-list"></div>
+          </div>
+        </div>
+
+        <!-- ════════════════════════════════════
+             PAGE: SUBMIT TASK
+        ════════════════════════════════════ -->
+        <div class="page" id="page-submit">
+          <div class="page-header">
+            <h2>Submit a Task</h2>
+            <p class="text-muted">Fill in the details below and attach your work.</p>
+          </div>
+
+          <div class="card submit-card">
+            <!-- ── Submission Rules Banner ── -->
+            <div class="rules-banner">
+              <h4><i class="bx bx-info-circle"></i> Submission Rules</h4>
+              <ul>
+                <li>Submit <strong>any 1 project</strong> per task.</li>
+                <li>Accepted formats: <strong>Text / Screenshot / Document</strong></li>
+                <li>Submission method: <strong>Submission form / Google Drive link</strong></li>
+                <li>
+                  File naming format:
+                  <code>FullName_DomainName</code>
+                  &nbsp;(e.g. <code>JaneDoe_WebDev</code>)
+                </li>
+              </ul>
+            </div>
+
+            <!-- Task submission form -->
+            <form id="taskForm" novalidate>
+              <!-- Row 1: Title + Status -->
+              <div class="form-row">
+                <div class="field-group flex-1">
+                  <label for="taskTitle">Task Title <span class="req">*</span></label>
+                  <div class="input-wrap">
+                    <i class="bx bx-pencil"></i>
+                    <input
+                      type="text"
+                      id="taskTitle"
+                      placeholder="e.g. Build a Landing Page"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div class="field-group w200">
+                  <label for="taskStatus">Status</label>
+                  <div class="input-wrap">
+                    <i class="bx bx-flag"></i>
+                    <select id="taskStatus">
+                      <option value="pending">Pending</option>
+                      <option value="completed">Completed</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Row 2: Description -->
+              <div class="field-group">
+                <label for="taskDesc">Description <span class="req">*</span></label>
+                <textarea
+                  id="taskDesc"
+                  rows="4"
+                  placeholder="Describe what you built, the tools you used, and any challenges…"
+                  required
+                ></textarea>
+              </div>
+
+              <!-- Row 3: Date + Domain -->
+              <div class="form-row">
+                <div class="field-group flex-1">
+                  <label for="taskDate">Submission Date <span class="req">*</span></label>
+                  <div class="input-wrap">
+                    <i class="bx bx-calendar"></i>
+                    <input type="date" id="taskDate" required />
+                  </div>
+                </div>
+
+                <div class="field-group flex-1">
+                  <label for="taskDomain">Domain / Category</label>
+                  <div class="input-wrap">
+                    <i class="bx bx-category"></i>
+                    <select id="taskDomain">
+                      <option value="Web Development">Web Development</option>
+                      <option value="Data Science">Data Science</option>
+                      <option value="UI/UX Design">UI/UX Design</option>
+                      <option value="Machine Learning">Machine Learning</option>
+                      <option value="Mobile Development">Mobile Development</option>
+                      <option value="Cybersecurity">Cybersecurity</option>
+                      <option value="Other">Other</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Row 4: Drag-and-drop file upload -->
+              <div class="field-group">
+                <label>Attach File (UI only)</label>
+                <div class="drop-zone" id="dropZone">
+                  <div class="drop-icon"><i class="bx bx-cloud-upload"></i></div>
+                  <p class="drop-text">Drag & Drop your file here</p>
+                  <p class="drop-hint">or</p>
+                  <label class="btn btn-ghost btn-sm" for="fileInput">Browse File</label>
+                  <input type="file" id="fileInput" hidden />
+                  <p class="file-name" id="fileName"></p>
+                </div>
+              </div>
+
+              <!-- Inline form error -->
+              <p class="auth-error hidden" id="taskError"></p>
+
+              <div class="form-actions">
+                <button type="button" class="btn btn-ghost" id="resetTaskForm">
+                  Clear Form
+                </button>
+                <button type="submit" class="btn btn-primary">
+                  <i class="bx bx-send"></i> Submit Task
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- ════════════════════════════════════
+             PAGE: MY TASKS
+        ════════════════════════════════════ -->
+        <div class="page" id="page-tasks">
+          <div class="page-header">
+            <h2>My Tasks</h2>
+            <p class="text-muted">Manage, search, and filter all your submissions.</p>
+          </div>
+
+          <!-- Search + filter bar -->
+          <div class="filter-bar card">
+            <div class="input-wrap flex-1">
+              <i class="bx bx-search"></i>
+              <input
+                type="text"
+                id="searchTasks"
+                placeholder="Search by task title…"
+                aria-label="Search tasks"
+              />
+            </div>
+            <div class="input-wrap w180">
+              <i class="bx bx-calendar-event"></i>
+              <input type="date" id="filterDate" aria-label="Filter by date" />
+            </div>
+            <div class="input-wrap w160">
+              <i class="bx bx-filter"></i>
+              <select id="filterStatus" aria-label="Filter by status">
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+            <button class="btn btn-ghost btn-sm" id="clearFilters">
+              <i class="bx bx-x"></i> Clear
+            </button>
+          </div>
+
+          <!-- Tasks grid -->
+          <div class="tasks-grid" id="tasksGrid"></div>
+        </div>
+
+        <!-- ════════════════════════════════════
+             PAGE: CALENDAR
+        ════════════════════════════════════ -->
+        <div class="page" id="page-calendar">
+          <div class="page-header">
+            <h2>Calendar</h2>
+            <p class="text-muted">View your task submissions by date.</p>
+          </div>
+          <div class="card calendar-card">
+            <div class="cal-nav">
+              <button class="btn btn-ghost btn-sm" id="calPrev">
+                <i class="bx bx-chevron-left"></i>
+              </button>
+              <h3 id="calMonthYear"></h3>
+              <button class="btn btn-ghost btn-sm" id="calNext">
+                <i class="bx bx-chevron-right"></i>
+              </button>
+            </div>
+            <div class="cal-grid-header">
+              <span>Sun</span><span>Mon</span><span>Tue</span>
+              <span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+            </div>
+            <div class="cal-grid" id="calGrid"></div>
+            <div class="cal-legend">
+              <span class="legend-dot"></span> Task submitted on this day
+            </div>
+          </div>
+        </div>
+
+        <!-- ════════════════════════════════════
+             PAGE: PROFILE
+        ════════════════════════════════════ -->
+        <div class="page" id="page-profile">
+          <div class="page-header">
+            <h2>My Profile</h2>
+          </div>
+          <div class="profile-layout">
+            <!-- Avatar card -->
+            <div class="card profile-avatar-card">
+              <div class="profile-avatar-big" id="profileAvatarBig">?</div>
+              <h3 id="profileName">—</h3>
+              <p class="text-muted" id="profileEmail">—</p>
+              <div class="profile-stats">
+                <div>
+                  <strong id="pStatTotal">0</strong>
+                  <span>Submissions</span>
+                </div>
+                <div>
+                  <strong id="pStatCompleted">0</strong>
+                  <span>Completed</span>
+                </div>
+                <div>
+                  <strong id="pStatPending">0</strong>
+                  <span>Pending</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Edit profile card -->
+            <div class="card profile-edit-card">
+              <h3>Edit Profile</h3>
+              <form id="profileForm">
+                <div class="field-group">
+                  <label for="editName">Full Name</label>
+                  <div class="input-wrap">
+                    <i class="bx bx-user"></i>
+                    <input type="text" id="editName" placeholder="Your name" />
+                  </div>
+                </div>
+                <div class="field-group">
+                  <label for="editRole">Role / Domain</label>
+                  <div class="input-wrap">
+                    <i class="bx bx-briefcase"></i>
+                    <input type="text" id="editRole" placeholder="e.g. Frontend Intern" />
+                  </div>
+                </div>
+                <div class="field-group">
+                  <label for="editBio">Bio</label>
+                  <textarea id="editBio" rows="3" placeholder="Tell us about yourself…"></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                  Save Changes
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <!-- ════════════════════════════════════
+             PAGE: NOTIFICATIONS
+        ════════════════════════════════════ -->
+        <div class="page" id="page-notifications">
+          <div class="page-header">
+            <h2>Notifications</h2>
+            <button class="btn btn-ghost btn-sm" id="clearNotifs">
+              Mark all read
+            </button>
+          </div>
+          <div class="card" id="notifList">
+            <!-- Populated by JS -->
+          </div>
+        </div>
+
+        <!-- ════════════════════════════════════
+             PAGE: SETTINGS
+        ════════════════════════════════════ -->
+        <div class="page" id="page-settings">
+          <div class="page-header">
+            <h2>Settings</h2>
+          </div>
+          <div class="card settings-card">
+            <!-- Theme -->
+            <div class="settings-row">
+              <div>
+                <strong>Dark Mode</strong>
+                <p class="text-muted text-sm">Toggle between light and dark theme.</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settingTheme" />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <!-- Notifications -->
+            <div class="settings-row">
+              <div>
+                <strong>Toast Notifications</strong>
+                <p class="text-muted text-sm">Show pop-up notifications for actions.</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" id="settingNotifs" checked />
+                <span class="toggle-slider"></span>
+              </label>
+            </div>
+
+            <!-- Clear all data -->
+            <div class="settings-row">
+              <div>
+                <strong>Clear All Tasks</strong>
+                <p class="text-muted text-sm">Permanently delete all submitted tasks.</p>
+              </div>
+              <button class="btn btn-danger btn-sm" id="clearAllTasks">
+                Clear Data
+              </button>
+            </div>
+
+            <!-- App info -->
+            <div class="settings-row">
+              <div>
+                <strong>App Version</strong>
+                <p class="text-muted text-sm">InternFlow v1.0.0 — Frontend only build</p>
+              </div>
+              <span class="badge badge-accent">v1.0.0</span>
+            </div>
+          </div>
+        </div>
+
+      </main><!-- end .content-area -->
+    </div><!-- end .main-content -->
+  </div><!-- end #appSection -->
+
+  <!-- ============================================================
+       Inline Edit Modal
+       Appears when "Edit" is clicked on a task card.
+  ============================================================ -->
+  <div id="editModal" class="modal-overlay hidden">
+    <div class="modal-box edit-modal-box">
+      <div class="modal-header">
+        <h3>Edit Task</h3>
+        <button class="icon-btn" id="closeEditModal">
+          <i class="bx bx-x"></i>
+        </button>
+      </div>
+      <form id="editForm">
+        <input type="hidden" id="editTaskId" />
+
+        <div class="field-group">
+          <label for="editTaskTitle">Title</label>
+          <div class="input-wrap">
+            <i class="bx bx-pencil"></i>
+            <input type="text" id="editTaskTitle" required />
+          </div>
+        </div>
+
+        <div class="field-group">
+          <label for="editTaskDesc">Description</label>
+          <textarea id="editTaskDesc" rows="3"></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="field-group flex-1">
+            <label for="editTaskDate">Date</label>
+            <div class="input-wrap">
+              <i class="bx bx-calendar"></i>
+              <input type="date" id="editTaskDate" />
+            </div>
+          </div>
+          <div class="field-group flex-1">
+            <label for="editTaskStatus">Status</label>
+            <div class="input-wrap">
+              <i class="bx bx-flag"></i>
+              <select id="editTaskStatus">
+                <option value="pending">Pending</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-ghost" id="cancelEdit">Cancel</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Link to our JavaScript file (defer = runs after HTML is parsed) -->
+  <script src="script.js" defer></script>
+</body>
+</html>
